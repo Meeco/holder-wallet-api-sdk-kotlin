@@ -188,38 +188,4 @@ fun main(args: Array<String>) {
 }
 ```
 
-## Documentation
 
-import org.openapitools.client.apis._
-import org.openapitools.client.models._
-import java.util.\*
-
-fun registerTestWallet(url: String, externalRef: String? = null): WalletResponseDto {
-return WalletApi(url).walletsControllerCreate(
-CreateWalletPayloadDto(
-externalRef ?: "test-${UUID.randomUUID()}"
-)
-)
-}
-
-fun registerTestKey(url: String, walletID: String, kty: String = "EC", crv: String = "P-256" ): KeysControllerCreate201Response {
-return KeyManagementApi(url).keysControllerCreate(
-walletID,
-KeysControllerCreateRequest(
-KeysControllerCreateRequestKey(
-kty = kty,
-crv= crv
-)
-)
-)
-}
-
-fun main(args: Array<String>) {
-var url = "http://holder-wallet-stage.svx.internal"
-var wallet = registerTestWallet(url)
-var keys = registerTestKey(url, wallet.wallet.id, )
-}
-
-```
-
-```
