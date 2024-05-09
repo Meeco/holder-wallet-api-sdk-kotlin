@@ -1,12 +1,12 @@
-# me.meeco.holder.wallet - Kotlin client library for Holder Wallet API
+# Kotlin client library for Holder Wallet API
 
-The Holder Wallet API (the service) provides an interface for managing (personal) digital wallets inside an SVX tenant environment. It facilitates a range of operations including key management, DID management, and credential issuance (receiving) and credential presentation (presenting). The goal is to provide flexibility on how the component is integrated, be it with a mobile or web application, or with a third party service.
+The Holder Wallet API (the service) provides an interface for managing (personal) digital wallets inside an SVX tenant environment. It facilitates a range of operations including key management, DID management, credential issuance (receiving), and credential presentation (presenting). The goal is to provide flexibility on how the component is integrated, be it with a mobile or web application, or with a third-party service.
 
-All cryptographic keys are managed by the service (often referred to as custodial key management) in a secure manner and can be used to control identifers (i.e. DIDs), as well as perform key binding in credentials.
+All cryptographic keys are managed by the service (often referred to as custodial key management) in a secure manner and can be used to control identifiers (i.e. DIDs), as well as perform key binding in credentials.
 
-The service facilitates receiving and presenting credentials in accordance to leading standards and specifications in the space. The main focus is on the family of OpenID4VC standards, JWT based credential formats and (optionally) DIDs.
+The service facilitates receiving and presenting credentials in accordance with leading standards and specifications in the space. The focus is on the family of OpenID4VC standards, JWT based credential formats and (optionally) DIDs.
 
-One instance of the service is able to manage multiple wallets, each of which is a collection of keys, DIDs and associated credentials. This service operates in a trusted environment where its client applications are expected to be trusted as well.
+One instance of the service can manage multiple wallets, each of which is a collection of keys, DIDs and associated credentials. This service operates in a trusted environment where its client applications are expected to be trusted as well.
 
 ## Wallet Management
 
@@ -175,7 +175,7 @@ fun registerTestKey(url: String, walletID: String, kty: String = "EC", crv: Stri
         KeysControllerCreateRequest(
             KeysControllerCreateRequestKey(
                 kty = kty,
-                crv= crv 
+                crv= crv
             )
         )
     )
@@ -190,17 +190,35 @@ fun main(args: Array<String>) {
 
 ## Documentation
 
-_Coming Soon!_
+import org.openapitools.client.apis._
+import org.openapitools.client.models._
+import java.util.\*
 
-## Roadmap
+fun registerTestWallet(url: String, externalRef: String? = null): WalletResponseDto {
+return WalletApi(url).walletsControllerCreate(
+CreateWalletPayloadDto(
+externalRef ?: "test-${UUID.randomUUID()}"
+)
+)
+}
 
-_Coming Soon!_
+fun registerTestKey(url: String, walletID: String, kty: String = "EC", crv: String = "P-256" ): KeysControllerCreate201Response {
+return KeyManagementApi(url).keysControllerCreate(
+walletID,
+KeysControllerCreateRequest(
+KeysControllerCreateRequestKey(
+kty = kty,
+crv= crv
+)
+)
+)
+}
 
-- [ ] Coming Soon
-
-## License
-
-This code is distributed under the MIT license. See the [LICENSE](LICENSE) file for more info.
+fun main(args: Array<String>) {
+var url = "http://holder-wallet-stage.svx.internal"
+var wallet = registerTestWallet(url)
+var keys = registerTestKey(url, wallet.wallet.id, )
+}
 
 ```
 

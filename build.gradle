@@ -1,46 +1,92 @@
-group 'org.openapitools'
-version '1.0.0'
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.8.10'
+    id 'maven-publish'
+    id 'com.diffplug.spotless' version '6.13.0'
+    id 'cl.franciscosolis.sonatype-central-upload' version '1.0.0'
+}
+
+group 'me.meeco'
+version project.VERSION_NUMBER
+
 
 wrapper {
     gradleVersion = '7.5'
     distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
-buildscript {
-    ext.kotlin_version = '1.8.10'
-    ext.spotless_version = "6.13.0"
-
-    repositories {
-        maven { url "https://repo1.maven.org/maven2" }
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotless_version"
-    }
-}
-
-apply plugin: 'kotlin'
-apply plugin: 'maven-publish'
-apply plugin: 'com.diffplug.spotless'
-
 repositories {
     maven { url "https://repo1.maven.org/maven2" }
 }
 
-// Use spotless plugin to automatically format code, remove unused import, etc
-// To apply changes directly to the file, run `gradlew spotlessApply`
-// Ref: https://github.com/diffplug/spotless/tree/main/plugin-gradle
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.set('javadoc')
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+sonatypeCentralUpload {
+    username = project.SONATYPE_USERNAME
+    password = project.SONATYPE_PASSWORD
+    
+    archives = files("./build/libs/holder-wallet-api-kotlin-sdk-$version\.jar", "./build/libs/holder-wallet-api-kotlin-sdk-$version-javadoc.jar", "./build/libs/holder-wallet-api-kotlin-sdk-$version-sources.jar")
+    pom = file("./build/publications/mavenJava/pom-default.xml")
+    
+    signingKey = project.SIGNING_KEY
+    signingKeyPassphrase = project.SIGNING_KEY_PASSPHRASE
+    publicKey = project.PUBLIC_KEY
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = 'holder-wallet-api-kotlin-sdk'
+                description = 'holder-wallet-api-kotlin-sdk'
+                url = 'https://github.com/Meeco/holder-wallet-api-sdk-kotlin'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'meeco'
+                        name = 'meeco'
+                        email = 'support@meeco.me'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/Meeco/holder-wallet-api-sdk-kotlin'
+                }
+            }
+        }
+    }
+}
+
+
 spotless {
-    // comment out below to run spotless as part of the `check` task
     enforceCheck false
 
     format 'misc', {
-        // define the files (e.g. '*.gradle', '*.md') to apply `misc` to
         target '.gitignore'
 
-        // define the steps to apply to those files
         trimTrailingWhitespace()
-        indentWithSpaces() // Takes an integer argument if you don't like 4
+        indentWithSpaces()
         endWithNewline()
     }
     kotlin {
@@ -53,8 +99,8 @@ test {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation "com.squareup.moshi:moshi-kotlin:1.14.0"
     implementation "com.squareup.moshi:moshi-adapters:1.14.0"
     implementation "com.squareup.okhttp3:okhttp:4.11.0"
